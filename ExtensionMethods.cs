@@ -6,7 +6,6 @@
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -109,18 +108,6 @@
                 list[k] = list[n];
                 list[n] = value;
             }
-        }
-        #endregion
-
-        #region Misc
-        public static T GetService<T>(this IServiceProvider serviceProvider) where T : class
-        {
-            if (serviceProvider == null)
-            {
-                return null;
-            }
-
-            return serviceProvider.GetService(typeof(T)) as T;
         }
         #endregion
 

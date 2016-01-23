@@ -5,9 +5,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.IO;
 
-public int Exec(string cmd, string args, bool shellExecute = false)
+const string DefaultNugetFeed = "https://www.nuget.org";
+const string ArtifactsLocation = "artifacts/Release";
+
+public int Exec(string cmd, string args, bool shellExecute = false, string workingDirectory = null)
 {
-    var ps = new ProcessStartInfo(cmd, args) { UseShellExecute = shellExecute };
+    var ps = new ProcessStartInfo(cmd, args) { UseShellExecute = shellExecute, WorkingDirectory = workingDirectory };
     var process = Process.Start(ps);
     process.WaitForExit();
     if (process.ExitCode != 0)
@@ -56,6 +59,12 @@ public void BuildProject(string project, string buildVersion = null, string outp
     Exec("dnu", string.Format("pack \"{0}\" --configuration Release --out \"{1}\"", project, output), shellExecute: true);
 }
 
+public void TestProject(string project)
+{
+    Console.WriteLine("Testing " + project);
+    Exec("dnx", string.Format("-p \"{0}\" test", project));
+}
+
 public void PublishNuget(IEnumerable<string> packages, string apiKey, string feed = null)
 {
     Parallel.ForEach(packages, package =>
@@ -66,14 +75,28 @@ public void PublishNuget(IEnumerable<string> packages, string apiKey, string fee
 
 public void PublishNuget(string package, string apiKey, string feed = null)
 {
-    feed = feed ?? "https://nuget.org/api/v2/";
+    feed = feed ?? DefaultNugetFeed;
     Console.WriteLine("Publishing nuget packge: '" + package + "' to " + feed);
     Exec("nuget", string.Format("push \"{0}\" -Source {1} -ApiKey {2}", package, feed, apiKey));
 }
 
-public void BuildAndPublishPreRelease(string project, string apiKey, string buildVersion = null, string feed = null)
+public void BuildTestPublishPreRelease(string[] projects, string[] testProjects, string apiKey = null, string buildVersion = null, string feed = null)
 {
-    buildVersion = buildVersion ?? "build" + VersionTimestamp();
-    BuildProject(project, buildVersion);
-    PublishNuget(Directory.GetFiles("artifacts/Release").Where(file => file.EndsWith("-" + buildVersion + ".nupkg")), apiKey, feed);
+    while (string.IsNullOrEmpty(buildVersion))
+    {
+        Console.WriteLine("Enter Build Version (e.g. alpha1):");
+        buildVersion = Console.ReadLine().Trim();
+    }
+
+    while (string.IsNullOrEmpty(apiKey))
+    {
+        Console.WriteLine("Enter ApiKey for '" + (feed ?? DefaultNugetFeed) + "':");
+        apiKey = Console.ReadLine().Trim();
+    }
+
+    if (Directory.Exists(ArtifactsLocation)) Directory.Delete(ArtifactsLocation, recursive: true);
+    
+    Parallel.ForEach(projects, p => BuildProject(p, buildVersion));
+    Parallel.ForEach(testProjects, p => TestProject(p));
+    PublishNuget(Directory.GetFiles(ArtifactsLocation).Where(file => file.EndsWith("-" + buildVersion + ".nupkg")), apiKey, feed);
 }

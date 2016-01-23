@@ -254,27 +254,6 @@
 
         #region Reflection
 
-        public static IEnumerable<Type> TryGetExportedTypes(this Assembly assembly)
-        {
-            try
-            {
-                if (assembly.IsDynamic) return Enumerable.Empty<Type>();
-
-                return assembly.ExportedTypes;
-            }
-            catch (ReflectionTypeLoadException e)
-            {
-                Debug.WriteLine("Error loading assembly: " + assembly.FullName);
-                Debug.WriteLine(e.LoaderExceptions[0]);
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine("Error loading assembly: " + assembly.FullName);
-                Debug.WriteLine(e);
-            }
-            return Enumerable.Empty<Type>();
-        }
-
         public static object TryParseEnum(Type enumType, string text)
         {
             try

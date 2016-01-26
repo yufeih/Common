@@ -69,6 +69,11 @@ public void PublishNuget(string package, string apiKey, string feed = null)
 {
     feed = feed ?? DefaultNugetFeed;
     Console.WriteLine("Publishing nuget packge: '" + package + "' to " + feed);
+
+    // Don't push symbols
+    var symbolPackage = Path.ChangeExtension(package, "symbols.nupkg");
+    if (File.Exists(symbolPackage)) File.Delete(symbolPackage);
+
     Exec("nuget", string.Format("push \"{0}\" -Source {1} -ApiKey {2}", package, feed, apiKey));
 }
 

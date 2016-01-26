@@ -65,14 +65,6 @@ public void TestProject(string project)
     Exec("dnx", string.Format("-p \"{0}\" test", project));
 }
 
-public void PublishNuget(IEnumerable<string> packages, string apiKey, string feed = null)
-{
-    Parallel.ForEach(packages, package =>
-    {
-        PublishNuget(package, apiKey, feed);
-    });
-}
-
 public void PublishNuget(string package, string apiKey, string feed = null)
 {
     feed = feed ?? DefaultNugetFeed;
@@ -80,7 +72,7 @@ public void PublishNuget(string package, string apiKey, string feed = null)
     Exec("nuget", string.Format("push \"{0}\" -Source {1} -ApiKey {2}", package, feed, apiKey));
 }
 
-public void BuildTestPublishPreRelease(string[] projects, string[] testProjects, string apiKey = null, string buildVersion = null, string feed = null)
+public void BuildTestPublishPreRelease(string[] projects, string[] testProjects, string apiKey = null, string buildVersion = null, string feed = null, bool parallel = true)
 {
     while (string.IsNullOrEmpty(buildVersion))
     {
@@ -95,8 +87,15 @@ public void BuildTestPublishPreRelease(string[] projects, string[] testProjects,
     }
 
     if (Directory.Exists(ArtifactsLocation)) Directory.Delete(ArtifactsLocation, recursive: true);
-    
-    Parallel.ForEach(projects, p => BuildProject(p, buildVersion));
-    Parallel.ForEach(testProjects, p => TestProject(p));
-    PublishNuget(Directory.GetFiles(ArtifactsLocation).Where(file => file.EndsWith("-" + buildVersion + ".nupkg")), apiKey, feed);
+
+    var loop = parallel
+        ? new Action<IEnumerable<string>, Action<string>>((a, b) => Parallel.ForEach(a, b))
+        : new Action<IEnumerable<string>, Action<string>>((a, b) => { foreach (var i in a) b(i); });
+
+    loop(projects, p => BuildProject(p, buildVersion));
+    loop(testProjects, p => TestProject(p));
+    loop(Directory.GetFiles(ArtifactsLocation).Where(file => file.EndsWith("-" + buildVersion + ".nupkg")), package =>
+    {
+        PublishNuget(package, apiKey, feed);
+    });
 }

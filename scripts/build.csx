@@ -6,7 +6,7 @@ using System.Linq;
 using System.IO;
 
 const string DefaultNugetFeed = "https://www.nuget.org";
-const string ArtifactsLocation = "artifacts/Release";
+const string ArtifactsLocation = "artifacts";
 
 public int Exec(string cmd, string args, bool shellExecute = false, string workingDirectory = null)
 {
@@ -44,7 +44,7 @@ public string VersionGitCommit()
 
 public void BuildProject(string project, string buildVersion = null, string output = null)
 {
-    output = output ?? "artifacts";
+    output = output ?? Path.Combine(ArtifactsLocation, Path.GetFileName(project));
 
     if (!string.IsNullOrEmpty(buildVersion))
     {
@@ -99,7 +99,8 @@ public void BuildTestPublishPreRelease(string[] projects, string[] testProjects,
 
     loop(projects, p => BuildProject(p, buildVersion));
     loop(testProjects, p => TestProject(p));
-    loop(Directory.GetFiles(ArtifactsLocation).Where(file => file.EndsWith("-" + buildVersion + ".nupkg")), package =>
+    loop(Directory.GetFiles(ArtifactsLocation, "*.nupkg", SearchOption.AllDirectories)
+                  .Where(file => file.EndsWith("-" + buildVersion + ".nupkg")), package =>
     {
         PublishNuget(package, apiKey, feed);
     });

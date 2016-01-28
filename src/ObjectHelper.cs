@@ -16,7 +16,7 @@ namespace System
 
         public static T Merge(T target, T change)
         {
-            if (Equals(target, change)) return target;
+            if (ReferenceEquals(target, change)) return target;
 
             foreach (var pi in _mergeProperties)
             {
@@ -33,7 +33,7 @@ namespace System
 
         public static T MergeExclude(T target, T change, string[] excludedProperties)
         {
-            if (Equals(target, change)) return target;
+            if (ReferenceEquals(target, change)) return target;
 
             foreach (var pi in _mergeProperties)
             {
@@ -58,7 +58,7 @@ namespace System
 
         public static IEnumerable<string> Delta(T target, T comparand)
         {
-            if (Equals(target, comparand)) yield break;
+            if (ReferenceEquals(target, comparand)) yield break;
 
             foreach (var prop in _mergeProperties)
             {
@@ -77,7 +77,6 @@ namespace System
                     yield return field.Name;
                 }
             }
-
         }
 
         private static IEnumerable<PropertyInfo> GetAllProperties(Type type)

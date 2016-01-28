@@ -26,17 +26,18 @@
 
         public DateTime Next()
         {
-            var now = DateTime.UtcNow.Ticks;
+            var now = DateTime.UtcNow;
+            var nowTicks = now.Ticks;
             var last = _stamp;
 
-            if (now <= last)
+            if (nowTicks <= last)
             {
                 return new DateTime(Interlocked.Increment(ref _stamp), DateTimeKind.Utc);
             }
 
-            if (Interlocked.CompareExchange(ref _stamp, now, last) == last)
+            if (Interlocked.CompareExchange(ref _stamp, nowTicks, last) == last)
             {
-                return new DateTime(now, DateTimeKind.Utc);
+                return now;
             }
 
             return new DateTime(Interlocked.Increment(ref _stamp), DateTimeKind.Utc);

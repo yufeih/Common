@@ -10,11 +10,10 @@
         public static readonly Task<string> EmptyString = Task.FromResult("");
         public static readonly Task<Stream> NullStream = Task.FromResult<Stream>(null);
 
-        public static Task<T> Null<T>() => Tasks<T>.Null;
+        public static Task<T> Null<T>() where T : class => Nulls<T>.Null;
+        public static Task<T> Default<T>() => Defaults<T>.Default;
 
-        class Tasks<T>
-        {
-            static readonly Task<T> Null = Task.FromResult<T>(null);
-        }
+        class Defaults<T> { public static readonly Task<T> Default = Task.FromResult<T>(default(T)); }
+        class Nulls<T> where T : class { public static readonly Task<T> Null = Task.FromResult<T>(null); }
     }
 }

@@ -8,9 +8,9 @@ namespace System.Threading
     {
         struct WorkItem
         {
-            public SendOrPostCallback callback;
-            public object state;
-            public AutoResetEvent handle;
+            public SendOrPostCallback Callback;
+            public object State;
+            public AutoResetEvent Handle;
         }
 
         public static UISynchronizationContext BindToCurrent()
@@ -19,38 +19,29 @@ namespace System.Threading
             SetSynchronizationContext(result);
             return result;
         }
-
-        private bool disposed;
-        private Thread uiThread;
-        private SynchronizationContext previous = SynchronizationContext.Current;
-        private readonly BlockingCollection<WorkItem> workItems = new BlockingCollection<WorkItem>();
         
-        private void EnsureUIThread()
+        private bool _disposed;
+        private readonly SynchronizationContext _previous = Current;
+        private readonly Thread _uiThread;
+        private readonly BlockingCollection<WorkItem> _workItems = new BlockingCollection<WorkItem>();
+        
+        public UISynchronizationContext()
         {
-            if (uiThread == null)
-            {
-                lock (workItems)
-                {
-                    if (uiThread == null)
-                    {
-                        uiThread = new Thread(Loop) { Name = "UIThread" };
-                        uiThread.Start();
-                    }
-                }
-            }
+            _uiThread = new Thread(Loop) { Name = "UIThread" };
+            _uiThread.Start();
         }
 
         private void Loop(object obj)
         {
             SetSynchronizationContext(this);
 
-            while (!disposed)
+            while (!_disposed)
             {
-                var currentItem = workItems.Take();
+                var currentItem = _workItems.Take();
 
                 try
                 {
-                    currentItem.callback(currentItem.state);
+                    currentItem.Callback(currentItem.State);
                 }
                 catch (Exception e)
                 {
@@ -58,39 +49,34 @@ namespace System.Threading
                 }
                 finally
                 {
-                    if (currentItem.handle != null)
-                    {
-                        currentItem.handle.Set();
-                    }
+                    currentItem.Handle?.Set();
                 }
             }
         }
 
         public override void Post(SendOrPostCallback d, object state)
         {
-            EnsureUIThread();
-            workItems.Add(new WorkItem { callback = d, state = state });
+            _workItems.Add(new WorkItem { Callback = d, State = state });
         }
 
         public override void Send(SendOrPostCallback d, object state)
         {
-            if (Thread.CurrentThread == uiThread)
+            if (Thread.CurrentThread == _uiThread)
             {
                 d(state);
             }
             else
             {
-                EnsureUIThread();
-                var workItem = new WorkItem { callback = d, state = state, handle = new AutoResetEvent(false) };
-                workItems.Add(workItem);
-                workItem.handle.WaitOne();
+                var workItem = new WorkItem { Callback = d, State = state, Handle = new AutoResetEvent(false) };
+                _workItems.Add(workItem);
+                workItem.Handle.WaitOne();
             }
         }
 
         public void Dispose()
         {
-            disposed = true;
-            SynchronizationContext.SetSynchronizationContext(previous);
+            _disposed = true;
+            SetSynchronizationContext(_previous);
         }
     }
 }

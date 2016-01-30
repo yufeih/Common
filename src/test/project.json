@@ -1,6 +1,7 @@
 ﻿{
   "compile": [
     "../LazyAsync.cs",
+    "../ObjectHelper.cs",
     "../LamportTimestamp.cs"
   ],
     

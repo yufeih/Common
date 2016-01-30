@@ -4,77 +4,122 @@ namespace System
     using System.Reflection;
     using System.Linq;
 
+    static class ObjectHelper
+    {
+        private static Func<object, object> _memberwiseClone;
+
+        static ObjectHelper()
+        {
+            var clone = typeof(object).GetMethod("MemberwiseClone", BindingFlags.Instance | BindingFlags.NonPublic);
+            _memberwiseClone = (Func<object, object>)clone.CreateDelegate(typeof(Func<object, object>));
+        }
+
+        public static T MemberwiseClone<T>(T target) where T : class
+        {
+            if (target == null) return null;
+            return (T)_memberwiseClone(target);
+        }
+    }
+
+    internal interface IPropertyAccessor
+    {
+        MemberInfo Member { get; }
+        object GetValue(object source);
+        void SetValue(object source, object value);
+        void Copy(object source, object target);
+        bool Compare(object source, object target);
+    }
+
+    class PropertyAccessor<T, TValue> : IPropertyAccessor
+    {
+        private readonly Func<T, TValue> _getter;
+        private readonly Action<T, TValue> _setter;
+        private readonly PropertyInfo _pi;
+
+        public MemberInfo Member => _pi;
+
+        public PropertyAccessor(PropertyInfo pi)
+        {
+            _pi = pi;
+            _getter = (Func<T, TValue>)pi.GetMethod.CreateDelegate(typeof(Func<T, TValue>));
+            _setter = (Action<T, TValue>)pi.SetMethod.CreateDelegate(typeof(Action<T, TValue>));
+        }
+
+        public object GetValue(object source) => _getter((T)source);
+        public void SetValue(object source, object value) => _setter((T)source, (TValue)value);
+        public void Copy(object source, object target) => _setter((T)target, _getter((T)source));
+        public bool Compare(object source, object target) => Equals(_getter((T)source), _getter((T)target));
+    }
+
     static class ObjectHelper<T> where T : class, new()
     {
-        private static readonly PropertyInfo[] _mergeProperties = (
+        private static readonly IPropertyAccessor[] _properties = (
             from pi in GetAllProperties(typeof(T))
             where pi.GetMethod != null && pi.GetMethod.IsPublic && pi.SetMethod != null && pi.SetMethod.IsPublic
-            select pi).ToArray();
+            let accessorType = typeof(PropertyAccessor<,>).MakeGenericType(typeof(T), pi.PropertyType)
+            select (IPropertyAccessor)Activator.CreateInstance(accessorType, pi)).ToArray();
 
-        private static readonly FieldInfo[] _mergeFields = (
+        private static readonly FieldInfo[] _fields = (
             from fi in GetAllFields(typeof(T)) where fi.IsPublic select fi).ToArray();
 
         public static T Merge(T target, T change)
         {
             if (ReferenceEquals(target, change)) return target;
 
-            foreach (var pi in _mergeProperties)
+            foreach (var pi in _properties)
             {
-                pi.SetMethod.Invoke(target, new[] { pi.GetMethod.Invoke(change, null) });
+                pi.Copy(change, target);
             }
 
-            foreach (var pi in _mergeFields)
+            foreach (var fi in _fields)
             {
-                pi.SetValue(target, pi.GetValue(change));
+                fi.SetValue(target, fi.GetValue(change));
             }
 
             return target;
         }
 
-        public static T MergeExclude(T target, T change, string[] excludedProperties)
+        public static T Merge(T target, T change, Func<MemberInfo, bool> predicate)
         {
             if (ReferenceEquals(target, change)) return target;
 
-            foreach (var pi in _mergeProperties)
+            foreach (var pi in _properties)
             {
-                if (excludedProperties.Contains(pi.Name)) continue;
-                pi.SetMethod.Invoke(target, new[] { pi.GetMethod.Invoke(change, null) });
+                if (predicate(pi.Member))
+                {
+                    pi.Copy(change, target);
+                }
             }
 
-            foreach (var pi in _mergeFields)
+            foreach (var pi in _fields)
             {
-                if (excludedProperties.Contains(pi.Name)) continue;
-                pi.SetValue(target, pi.GetValue(change));
+                if (predicate(pi))
+                {
+                    pi.SetValue(target, pi.GetValue(change));
+                }
             }
 
             return target;
-        }
-
-        public static T Clone(T target)
-        {
-            if (target == null) return null;
-            return Merge(new T(), target);
         }
 
         public static IEnumerable<string> Delta(T target, T comparand)
         {
             if (ReferenceEquals(target, comparand)) yield break;
 
-            foreach (var prop in _mergeProperties)
+            foreach (var pi in _properties)
             {
-                if (!Equals(prop.GetMethod.Invoke(target, null),
-                            prop.GetMethod.Invoke(comparand, null)))
+                if (pi.Compare(target, comparand))
                 {
-                    yield return prop.Name;
+                    yield return pi.Member.Name;
                 }
             }
 
-            foreach (var field in _mergeFields)
+            foreach (var fi in _fields)
             {
-                if (!Equals(field.GetValue(target),
-                            field.GetValue(target)))
+                if (!Equals(fi.GetValue(target),
+                            fi.GetValue(target)))
                 {
-                    yield return field.Name;
+                    yield return fi.Name;
                 }
             }
         }

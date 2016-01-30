@@ -41,8 +41,8 @@ namespace System
         public PropertyAccessor(PropertyInfo pi)
         {
             _pi = pi;
-            _getter = (Func<T, TValue>)Delegate.CreateDelegate(typeof(Func<T, TValue>), pi.GetMethod);
-            _setter = (Action<T, TValue>)Delegate.CreateDelegate(typeof(Action<T, TValue>), pi.SetMethod);
+            _getter = (Func<T, TValue>)pi.GetMethod.CreateDelegate(typeof(Func<T, TValue>));
+            _setter = (Action<T, TValue>)pi.SetMethod.CreateDelegate(typeof(Action<T, TValue>));
         }
 
         public object GetValue(object source) => _getter((T)source);

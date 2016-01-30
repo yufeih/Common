@@ -47,8 +47,8 @@ namespace System
 
         public object GetValue(object source) => _getter((T)source);
         public void SetValue(object source, object value) => _setter((T)source, (TValue)value);
-        public void Copy(object source, object target) => _setter((T)source, _getter((T)source));
-        public bool Compare(object source, object target) => Equals(_getter((T)source), _getter((T)source));
+        public void Copy(object source, object target) => _setter((T)target, _getter((T)source));
+        public bool Compare(object source, object target) => Equals(_getter((T)source), _getter((T)target));
     }
 
     static class ObjectHelper<T> where T : class, new()

@@ -26,6 +26,8 @@ namespace System
         MemberInfo Member { get; }
         object GetValue(object source);
         void SetValue(object source, object value);
+        void Copy(object source, object target);
+        bool Compare(object source, object target);
     }
 
     class PropertyAccessor<T, TValue> : IPropertyAccessor
@@ -45,6 +47,8 @@ namespace System
 
         public object GetValue(object source) => _getter((T)source);
         public void SetValue(object source, object value) => _setter((T)source, (TValue)value);
+        public void Copy(object source, object target) => _setter((T)source, _getter((T)source));
+        public bool Compare(object source, object target) => Equals(_getter((T)source), _getter((T)source));
     }
 
     static class ObjectHelper<T> where T : class, new()
@@ -64,7 +68,7 @@ namespace System
 
             foreach (var pi in _properties)
             {
-                pi.SetValue(target, pi.GetValue(change));
+                pi.Copy(change, target);
             }
 
             foreach (var fi in _fields)
@@ -83,7 +87,7 @@ namespace System
             {
                 if (predicate(pi.Member))
                 {
-                    pi.SetValue(target, pi.GetValue(change));
+                    pi.Copy(change, target);
                 }
             }
 
@@ -104,7 +108,7 @@ namespace System
 
             foreach (var pi in _properties)
             {
-                if (!Equals(pi.GetValue(target), pi.GetValue(comparand)))
+                if (pi.Compare(target, comparand))
                 {
                     yield return pi.Member.Name;
                 }

@@ -34,7 +34,7 @@
             if (delay == await Task.WhenAny(delay, tcs.Task))
             {
                 n.PropertyChanged -= handler;
-                throw new TimeoutException($"{ JsonConvert.ToString(obj) }");
+                throw new TimeoutException($"{ JsonConvert.SerializeObject(obj) }");
             }
         }
 
@@ -72,7 +72,7 @@
             if (delay == await Task.WhenAny(delay, tcs.Task))
             {
                 collectionChanged.CollectionChanged -= handler;
-                throw new TimeoutException($"[{ collection.Count() }] : { JsonConvert.ToString(collection) }");
+                throw new TimeoutException($"[{ collection.Count() }] : { JsonConvert.SerializeObject(collection) }");
             }
         }
     }

@@ -1,9 +1,8 @@
-﻿namespace Nine.Storage
+﻿namespace System
 {
-    using System;
     using System.Diagnostics;
     using Xunit;
-    
+
     public class Foo
     {
         public int Id;

@@ -2,8 +2,13 @@
   "compile": [
     "../src/LazyAsync.cs",
     "../src/ObjectHelper.cs",
-    "../src/LamportTimestamp.cs"
+    "../src/LamportTimestamp.cs",
+    "../src/IdentifierId.cs"
   ],
+
+  "compilationOptions": {
+    "allowUnsafe": true
+  },
 
   "dependencies": {
     "xunit": "2.1.0",

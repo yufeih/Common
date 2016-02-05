@@ -1,4 +1,4 @@
-﻿namespace Nine.Storage
+﻿namespace System
 {
     using System;
     using System.Collections.Concurrent;

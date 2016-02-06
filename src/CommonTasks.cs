@@ -4,6 +4,8 @@
 
     static class CommonTasks
     {
+        public static readonly Task Completed = True;
+        
         public static readonly Task<bool> True = Task.FromResult(true);
         public static readonly Task<bool> False = Task.FromResult(false);
         public static readonly Task<string> NullString = Task.FromResult<string>(null);

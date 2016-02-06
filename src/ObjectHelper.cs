@@ -10,7 +10,7 @@ namespace System
 
         static ObjectHelper()
         {
-            var clone = typeof(object).GetMethod("MemberwiseClone", BindingFlags.Instance | BindingFlags.NonPublic);
+            var clone = typeof(object).GetTypeInfo().GetDeclaredMethod("MemberwiseClone");
             _memberwiseClone = (Func<object, object>)clone.CreateDelegate(typeof(Func<object, object>));
         }
 

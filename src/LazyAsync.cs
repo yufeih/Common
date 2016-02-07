@@ -8,9 +8,7 @@
     /// Provides support for asynchronous lazy initialization that is similar to System.Lazy
     /// </summary>
     /// <typeparam name="T">Payload type</typeparam>
-#if !PCL
     [DebuggerStepThrough]
-#endif
     class LazyAsync<T>
     {
         private readonly bool _retryOnFailure;

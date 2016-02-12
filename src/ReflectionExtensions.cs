@@ -34,26 +34,26 @@
 
         public static IEnumerable<Assembly> LoadReferencedAssemblies(this Assembly assembly, Func<AssemblyName, bool> predicate = null, bool recursive = false)
         {
-            var result = new List<Assembly>();
+            var result = new HashSet<Assembly>();
             LoadReferencedAssemblies(assembly, predicate, recursive, result);
             return result;
         }
 
-        private static void LoadReferencedAssemblies(Assembly assembly, Func<AssemblyName, bool> predicate, bool recursive, List<Assembly> result)
+        private static void LoadReferencedAssemblies(Assembly assembly, Func<AssemblyName, bool> predicate, bool recursive, HashSet<Assembly> result)
         {
             if (assembly != null)
             {
                 foreach (var name in assembly.GetReferencedAssemblies())
                 {
-                    if (predicate(name))
+                    if (predicate == null || predicate(name))
                     {
                         try
                         {
                             var loaded = Assembly.Load(name);
 
-                            if (!result.Contains(loaded))
+                            if (!result.Add(loaded))
                             {
-                                result.Add(loaded);
+                                continue;
                             }
 
                             if (recursive)

@@ -3,7 +3,9 @@
     "../src/LazyAsync.cs",
     "../src/ObjectHelper.cs",
     "../src/LamportTimestamp.cs",
-    "../src/IdentifierId.cs"
+    "../src/IdentifierHash.cs",
+    "../src/Murmur3.cs",
+    "../src/ReflectionExtensions.cs"
   ],
 
   "compilationOptions": {

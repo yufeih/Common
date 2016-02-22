@@ -41,7 +41,7 @@
 
             if (random.NextDouble() > NetworkAvailibility)
             {
-                throw new HttpRequestException("Faked exception from " + typeof(TestHttpMessageHandler).Name);
+                throw new HttpRequestException("Faked exception from " + typeof(HttpTestHandler).Name);
             }
 
             return await base.SendAsync(request, cancellationToken);

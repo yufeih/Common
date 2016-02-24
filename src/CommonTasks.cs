@@ -23,5 +23,7 @@
         class Nulls<T> where T : class { public static readonly Task<T> Value = Task.FromResult<T>(null); }
         class Emptys<T> { public static readonly Task<IEnumerable<T>> Value = Task.FromResult(Enumerable.Empty<T>()); }
         class EmptyArrays<T> { public static readonly Task<T[]> Value = Task.FromResult(new T[0]); }
+        
+        public static void Go(this Task task) { }
     }
 }

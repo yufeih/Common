@@ -11,6 +11,7 @@
 
         public TimeSpan Latency { get; set; } = TimeSpan.Zero;
         public double NetworkAvailibility { get; set; } = 1;
+        public bool IsConnected { get; set; } = true;
         public HttpStatusCode? StatusCode { get; set; }
         public Func<HttpRequestMessage, bool> Predicate { get; set; }
 
@@ -39,7 +40,7 @@
 
             await Task.Delay(random.Next((int)Latency.TotalMilliseconds / 2) + (int)Latency.TotalMilliseconds);
 
-            if (random.NextDouble() > NetworkAvailibility)
+            if (random.NextDouble() > NetworkAvailibility || !IsConnected)
             {
                 throw new HttpRequestException("Faked exception from " + typeof(HttpTestHandler).Name);
             }

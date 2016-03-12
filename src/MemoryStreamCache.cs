@@ -23,7 +23,7 @@ namespace System.IO
                     if (capacity <= ms.Capacity)
                     {
                         MemoryStreamCache.t_cachedInstance = null;
-                        ms.Seek(0, SeekOrigin.Begin);
+                        ms.SetLength(0);
                         return ms;
                     }
                 }

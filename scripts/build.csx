@@ -87,10 +87,17 @@ public void PublishNuget(string package, string apiKey, string feed = null)
     Exec("nuget", string.Format("push \"{0}\" -Source {1} -ApiKey {2}", package, feed, apiKey));
 }
 
-public void BuildTestPublishPreRelease(string[] projects = null, string[] testProjects = null, string apiKey = null, string suffix = null, string feed = null, bool parallel = false)
+public void BuildTestPublishPreRelease(
+    string[] projects = null, string[] testProjects = null, string[] additionalProjects = null,
+    string apiKey = null, string suffix = null, string feed = null, bool parallel = false)
 {
     projects = projects ?? Directory.GetDirectories("src");
     testProjects = testProjects ?? Directory.GetDirectories("test");
+    
+    if (additionalProjects != null)
+    {
+        projects = projects.Concat(additionalProjects).ToArray();
+    }
     
     while (string.IsNullOrEmpty(suffix))
     {

@@ -6,9 +6,7 @@
     using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
-    using Newtonsoft.Json;
 
-    [DebuggerStepThrough]
     static class TestExtensionMethods
     {
         public async static Task PropertyChangedTo<T>(this T obj, Func<T, bool> predicate, int timeout = 10000)
@@ -34,7 +32,7 @@
             if (delay == await Task.WhenAny(delay, tcs.Task))
             {
                 n.PropertyChanged -= handler;
-                throw new TimeoutException($"{ JsonConvert.SerializeObject(obj) }");
+                throw new TimeoutException($"{ obj }");
             }
         }
 
@@ -72,7 +70,7 @@
             if (delay == await Task.WhenAny(delay, tcs.Task))
             {
                 collectionChanged.CollectionChanged -= handler;
-                throw new TimeoutException($"[{ collection.Count() }] : { JsonConvert.SerializeObject(collection) }");
+                throw new TimeoutException($"[{ collection.Count() }] : { collection }");
             }
         }
     }

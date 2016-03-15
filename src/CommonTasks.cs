@@ -29,9 +29,9 @@
 
     static class Empty
     {
-        public static Array<T> => Backing<T>.Array;
-        public static List<T> => Backing<T>.List;
-        public static Dictionary<TKey, TValue> => Backing<TKey, TValue>.Dictionary;
+        public static T[] Array<T>() => Backing<T>.Array;
+        public static List<T> List<T>() => Backing<T>.List;
+        public static Dictionary<TKey, TValue> Dictionary<TKey, TValue>() => Backing<TKey, TValue>.Dictionary;
 
         class Backing<T>
         {

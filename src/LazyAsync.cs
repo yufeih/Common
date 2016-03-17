@@ -64,12 +64,13 @@
             if (oldTcs != null) return oldTcs.Task;
 
             // The first request initializes the value
-            return this.GetValueCoreAsync(newTcs);
+            return GetValueCoreAsync(newTcs);
         }
 
         /// <summary>
         /// Invalidates the cached value.
         /// </summary>
+        [Obsolete("Create a new instance instead")]
         public void Invalidate()
         {
             Interlocked.Exchange(ref _tcs, null);

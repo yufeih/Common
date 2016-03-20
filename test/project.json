@@ -6,6 +6,7 @@
     "../src/IdentifierHash.cs",
     "../src/Murmur3.cs",
     "../src/Rsa.cs",
+    "../src/RsaAes.cs",
     "../src/ReflectionExtensions.cs"
   ],
 

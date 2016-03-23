@@ -1,6 +1,5 @@
 ﻿{
   "compile": [
-    "../src/LazyAsync.cs",
     "../src/ObjectHelper.cs",
     "../src/LamportTimestamp.cs",
     "../src/IdentifierHash.cs",

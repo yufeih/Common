@@ -20,7 +20,7 @@
             var result = handlers.FirstOrDefault();
             var last = result;
 
-            foreach (var handler in handlers)
+            foreach (var handler in handlers.Skip(1))
             {
                 last.InnerHandler = handler;
                 last = handler;

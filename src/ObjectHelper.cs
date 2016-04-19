@@ -45,17 +45,41 @@ namespace System
             return (T)result;
         }
 
-        public static T With<T>(this T target, T change, params string[] properties) where T : class, new()
+        public static T With<T>(this T target, T change, string property, params string[] properties) where T : class, new()
         {
             var result = _memberwiseClone(target);
 
-            foreach (var property in properties)
+            var found = false;
+
+            foreach (var pi in Accessor<T>.Properties)
             {
-                var found = false;
+                if (pi.Member.Name == property)
+                {
+                    pi.Copy(change, result);
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found)
+            {
+                foreach (var fi in Accessor<T>.Fields)
+                {
+                    if (fi.Name == property)
+                    {
+                        fi.SetValue(result, fi.GetValue(change));
+                        break;
+                    }
+                }
+            }
+
+            foreach (var p in properties)
+            {
+                found = false;
 
                 foreach (var pi in Accessor<T>.Properties)
                 {
-                    if (pi.Member.Name == property)
+                    if (pi.Member.Name == p)
                     {
                         pi.Copy(change, result);
                         found = true;
@@ -67,7 +91,7 @@ namespace System
                 {
                     foreach (var fi in Accessor<T>.Fields)
                     {
-                        if (fi.Name == property)
+                        if (fi.Name == p)
                         {
                             fi.SetValue(result, fi.GetValue(change));
                             break;

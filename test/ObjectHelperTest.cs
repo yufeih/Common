@@ -40,11 +40,15 @@
             var foo1 = foo.With(new Foo { Id = 2 }, nameof(Foo.Id));
             Assert.Equal(2, foo1.Id);
             Assert.Equal("a", foo1.Name);
+            Assert.Equal(1, foo.Id);
+            Assert.Equal("a", foo.Name);
             Assert.NotEqual(foo, foo1);
 
             var foo2 = foo.With(new Foo { Id = 3, Name = "b" }, nameof(Foo.Id), nameof(Foo.Name));
             Assert.Equal(3, foo2.Id);
             Assert.Equal("b", foo2.Name);
+            Assert.Equal(1, foo.Id);
+            Assert.Equal("a", foo.Name);
             Assert.NotEqual(foo, foo2);
         }
 

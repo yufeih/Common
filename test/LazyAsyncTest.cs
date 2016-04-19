@@ -14,7 +14,7 @@
             for (var i = 0; i < 100; i++)
             {
                 var n = 0;
-                var lazy = new LazyAsync<int>(async () =>
+                var lazy = new Lazy<Task<int>>(async () =>
                 {
                     await Task.Delay(10);
                     return Interlocked.Increment(ref n);
@@ -23,7 +23,7 @@
                 var bag = new ConcurrentBag<Task<int>>();
                 Parallel.For(0, 1000, j =>
                 {
-                    bag.Add(lazy.GetValueAsync());
+                    bag.Add(lazy.Value);
                 });
 
                 var results = await Task.WhenAll(bag);
@@ -35,22 +35,20 @@
             }
         }
 
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public async Task retry_on_failure(bool retry)
+        [Fact]
+        public async Task retry_on_failure()
         {
             var n = 0;
-            var lazy = new LazyAsync<int>(() =>
+            var lazy = new Lazy<Task<int>>(() =>
             {
                 n++;
                 throw new NotImplementedException();
-            }, retry);
+            });
 
-            try { await lazy.GetValueAsync(); } catch (NotImplementedException) { }
-            try { await lazy.GetValueAsync(); } catch (NotImplementedException) { }
+            try { await lazy.Value; } catch (NotImplementedException) { }
+            try { await lazy.Value; } catch (NotImplementedException) { }
 
-            Assert.Equal(retry ? 2 : 1, n);
+            Assert.Equal(1, n);
         }
     }
 }

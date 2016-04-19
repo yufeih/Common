@@ -34,13 +34,28 @@
     public class ObjectHelperTest
     {
         [Fact]
+        public void with()
+        {
+            var foo = new Foo { Id = 1, Name = "a" };
+            var foo1 = foo.With(new Foo { Id = 2 }, nameof(Foo.Id));
+            Assert.Equal(2, foo1.Id);
+            Assert.Equal("a", foo1.Name);
+            Assert.NotEqual(foo, foo1);
+
+            var foo2 = foo.With(new Foo { Id = 3, Name = "b" }, nameof(Foo.Id), nameof(Foo.Name));
+            Assert.Equal(3, foo2.Id);
+            Assert.Equal("b", foo2.Name);
+            Assert.NotEqual(foo, foo2);
+        }
+
+        [Fact]
         public void perf()
         {
             var foo = new Foo();
             var sw = Stopwatch.StartNew();
             for (var i = 0; i < 100 * 1000; i++)
             {
-                ObjectHelper<Foo>.Merge(new Foo(), foo);
+                ObjectHelper.Merge(new Foo(), foo);
                 foo.Id++;
             }
             Console.WriteLine(sw.ElapsedMilliseconds);

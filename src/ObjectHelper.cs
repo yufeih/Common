@@ -20,6 +20,27 @@ namespace System
             return (T)_memberwiseClone(target);
         }
 
+        public static object GetProperty<T>(this T target, string property)
+        {
+            foreach (var pi in Accessor<T>.Properties)
+            {
+                if (pi.Member.Name == property)
+                {
+                    return pi.GetValue(target);
+                }
+            }
+
+            foreach (var fi in Accessor<T>.Fields)
+            {
+                if (fi.Name == property)
+                {
+                    return fi.GetValue(target);
+                }
+            }
+
+            return null;
+        }
+
         public static T With<T>(this T target, T change, string property)
         {
             var result = _memberwiseClone(target);

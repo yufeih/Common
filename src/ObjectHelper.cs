@@ -20,7 +20,7 @@ namespace System
             return (T)_memberwiseClone(target);
         }
 
-        public static T With<T>(this T target, T change, string property) where T : class, new()
+        public static T With<T>(this T target, T change, string property)
         {
             var result = _memberwiseClone(target);
 
@@ -45,7 +45,7 @@ namespace System
             return (T)result;
         }
 
-        public static T With<T>(this T target, T change, string property, params string[] properties) where T : class, new()
+        public static T With<T>(this T target, T change, string property, params string[] properties)
         {
             var result = _memberwiseClone(target);
 
@@ -76,6 +76,40 @@ namespace System
             foreach (var p in properties)
             {
                 found = false;
+
+                foreach (var pi in Accessor<T>.Properties)
+                {
+                    if (pi.Member.Name == p)
+                    {
+                        pi.Copy(change, result);
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    foreach (var fi in Accessor<T>.Fields)
+                    {
+                        if (fi.Name == p)
+                        {
+                            fi.SetValue(result, fi.GetValue(change));
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return (T)result;
+        }
+
+        public static T With<T>(this T target, T change, IEnumerable<string> properties)
+        {
+            var result = _memberwiseClone(target);
+
+            foreach (var p in properties)
+            {
+                var found = false;
 
                 foreach (var pi in Accessor<T>.Properties)
                 {
@@ -195,7 +229,7 @@ namespace System
             public bool Compare(object source, object target) => Equals(_getter((T)source), _getter((T)target));
         }
 
-        static class Accessor<T> where T : class, new()
+        static class Accessor<T>
         {
             public static readonly IPropertyAccessor[] Properties = (
                 from pi in GetAllProperties(typeof(T))

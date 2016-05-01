@@ -14,9 +14,9 @@ namespace System
             _memberwiseClone = (Func<object, object>)clone.CreateDelegate(typeof(Func<object, object>));
         }
 
-        public static T MemberwiseClone<T>(this T target) where T : class
+        public static T MemberwiseClone<T>(this T target)
         {
-            if (target == null) return null;
+            if (target == null) return target;
             return (T)_memberwiseClone(target);
         }
 
@@ -39,6 +39,27 @@ namespace System
             }
 
             return null;
+        }
+
+        public static void SetProperty<T>(this T target, string property, object value)
+        {
+            foreach (var pi in Accessor<T>.Properties)
+            {
+                if (pi.Member.Name == property)
+                {
+                    pi.SetValue(target, value);
+                    return;
+                }
+            }
+
+            foreach (var fi in Accessor<T>.Fields)
+            {
+                if (fi.Name == property)
+                {
+                    fi.SetValue(target, value);
+                    return;
+                }
+            }
         }
 
         public static T With<T>(this T target, T change, string property)
@@ -72,24 +93,27 @@ namespace System
 
             var found = false;
 
-            foreach (var pi in Accessor<T>.Properties)
+            if (property != null)
             {
-                if (pi.Member.Name == property)
+                foreach (var pi in Accessor<T>.Properties)
                 {
-                    pi.Copy(change, result);
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found)
-            {
-                foreach (var fi in Accessor<T>.Fields)
-                {
-                    if (fi.Name == property)
+                    if (pi.Member.Name == property)
                     {
-                        fi.SetValue(result, fi.GetValue(change));
+                        pi.Copy(change, result);
+                        found = true;
                         break;
+                    }
+                }
+
+                if (!found)
+                {
+                    foreach (var fi in Accessor<T>.Fields)
+                    {
+                        if (fi.Name == property)
+                        {
+                            fi.SetValue(result, fi.GetValue(change));
+                            break;
+                        }
                     }
                 }
             }
@@ -149,6 +173,42 @@ namespace System
                         if (fi.Name == p)
                         {
                             fi.SetValue(result, fi.GetValue(change));
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return (T)result;
+        }
+
+        public static T With<T>(this T target, IReadOnlyDictionary<string, object> changes)
+        {
+            if (changes == null || changes.Count <= 0) return target;
+
+            var result = _memberwiseClone(target);
+
+            foreach (var p in changes)
+            {
+                var found = false;
+
+                foreach (var pi in Accessor<T>.Properties)
+                {
+                    if (pi.Member.Name == p.Key)
+                    {
+                        pi.SetValue(result, p.Value);
+                        found = true;
+                        break;
+                    }
+                }
+
+                if (!found)
+                {
+                    foreach (var fi in Accessor<T>.Fields)
+                    {
+                        if (fi.Name == p.Key)
+                        {
+                            fi.SetValue(result, p.Value);
                             break;
                         }
                     }
@@ -220,7 +280,7 @@ namespace System
             }
         }
 
-        interface IPropertyAccessor
+        internal interface IPropertyAccessor
         {
             MemberInfo Member { get; }
             object GetValue(object source);
@@ -250,7 +310,7 @@ namespace System
             public bool Compare(object source, object target) => Equals(_getter((T)source), _getter((T)target));
         }
 
-        static class Accessor<T>
+        internal static class Accessor<T>
         {
             public static readonly IPropertyAccessor[] Properties = (
                 from pi in GetAllProperties(typeof(T))

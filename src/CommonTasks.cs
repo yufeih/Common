@@ -7,7 +7,7 @@
     static class CommonTasks
     {
         public static readonly Task Completed = Task.FromResult(true);
-        
+
         public static readonly Task<bool> True = Task.FromResult(true);
         public static readonly Task<bool> False = Task.FromResult(false);
         public static readonly Task<string> NullString = Task.FromResult<string>(null);
@@ -23,7 +23,25 @@
         class Nulls<T> where T : class { public static readonly Task<T> Value = Task.FromResult<T>(null); }
         class Emptys<T> { public static readonly Task<IEnumerable<T>> Value = Task.FromResult(Enumerable.Empty<T>()); }
         class EmptyArrays<T> { public static readonly Task<T[]> Value = Task.FromResult(new T[0]); }
-        
+
         public static void Go(this Task task) { }
+    }
+
+    static class Empty
+    {
+        public static T[] Array<T>() => Backing<T>.Array;
+        public static List<T> List<T>() => Backing<T>.List;
+        public static Dictionary<TKey, TValue> Dictionary<TKey, TValue>() => Backing<TKey, TValue>.Dictionary;
+
+        class Backing<T>
+        {
+            public static readonly T[] Array = new T[0];
+            public static readonly List<T> List = new List<T>(0);
+        }
+
+        class Backing<T1, T2>
+        {
+            public static readonly Dictionary<T1, T2> Dictionary = new Dictionary<T1, T2>(0);
+        }
     }
 }

@@ -1,27 +1,26 @@
-namespace Nine.Application
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Collections.Specialized;
-    using System.ComponentModel;
-    using System.Diagnostics;
-    using System.Threading;
 #if WINDOWS_UWP
-    using System.Threading.Tasks;
-    using Windows.UI.Xaml;
-    using Windows.UI.Xaml.Controls;
-    using Windows.UI.Xaml.Media.Imaging;
-#elif ANDROID
-    using Android.Views;
-    using Android.Widget;
-    using Android.Graphics.Drawables;
-#elif iOS
-    using System.Linq;
-    using UIKit;
-    using Foundation;
-#endif
+using System;
+using System.Collections.Generic;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Media;
+using Windows.UI.Xaml.Media.Imaging;
 
+namespace Windows.UI.Xaml
+
+#elif ANDROID
+using Android.Views;
+using Android.Widget;
+using Android.Graphics.Drawables;
+
+namespace Android.Views
+
+#elif iOS
+using System.Linq;
+using Foundation;
+
+namespace UIKit
+#endif
+{
     static class BindingExtensions
     {
 #if ANDROID
@@ -61,25 +60,27 @@ namespace Nine.Application
             image.SetImageBitmap(bitmapManager.Get(value));
         }
 #elif WINDOWS_UWP
-        public static Visibility ToVisible(this bool value)
+        public static Visibility ToVisible(this bool value) => value ? Visibility.Visible : Visibility.Collapsed;
+
+        public static Visibility ToCollapsed(this bool value) => value ? Visibility.Collapsed : Visibility.Visible;
+
+        public static Visibility ToVisible(this string value) => string.IsNullOrEmpty(value) ? Visibility.Collapsed : Visibility.Visible;
+
+        public static Visibility ToCollapsed(this string value) => string.IsNullOrEmpty(value) ? Visibility.Visible : Visibility.Collapsed;
+
+        public static SolidColorBrush ToBrush(this uint color)
         {
-            return value ? Visibility.Visible : Visibility.Collapsed;
+            SolidColorBrush result;
+            if (!_brushes.TryGetValue(color, out result))
+                _brushes[color] = result = new SolidColorBrush(Color.FromArgb(
+                    (byte)(color >> 24 & 0xFF),
+                    (byte)(color >> 16 & 0xFF),
+                    (byte)(color >> 8 & 0xFF),
+                    (byte)(color >> 0 & 0xFF)));
+            return result;
         }
 
-        public static Visibility ToCollapsed(this bool value)
-        {
-            return value ? Visibility.Collapsed : Visibility.Visible;
-        }
-
-        public static Visibility ToVisible(this string value)
-        {
-            return string.IsNullOrEmpty(value) ? Visibility.Collapsed : Visibility.Visible;
-        }
-
-        public static Visibility ToCollapsed(this string value)
-        {
-            return string.IsNullOrEmpty(value) ? Visibility.Visible : Visibility.Collapsed;
-        }
+        private static Dictionary<uint, SolidColorBrush> _brushes = new Dictionary<uint, SolidColorBrush>();
 
         public static void SetSource(this Image image, string value)
         {
@@ -99,145 +100,7 @@ namespace Nine.Application
             catch
             {
                 image.Source = null;
-                Debug.WriteLine($"Error convert '{ value }' to BitmapImage");
             }
-        }
-
-        /// <summary>
-        /// Creates an ReadOnlyObservableCollection wrapper around this collection.
-        /// On WinRT, listview requires the collection to derive from ObservableCollection rather then
-        /// implement INotifyPropertyChanged.
-        /// </summary>
-        public static ReadOnlyObservableCollection<T> AsReadOnlyObservableCollection<T>(this IReadOnlyList<T> collection)
-        {
-            return new ReadOnlyObservableCollection<T>(AsObservableCollection(collection));
-        }
-
-        /// <summary>
-        /// Creates an ReadOnlyObservableCollection wrapper around this collection.
-        /// On WinRT, listview requires the collection to derive from ObservableCollection rather then
-        /// implement INotifyPropertyChanged.
-        /// </summary>
-        public static ObservableCollection<T> AsObservableCollection<T>(this IReadOnlyList<T> collection, bool smoothFastRemoveAdd = false)
-        {
-            var list = new ObservableCollection<T>(collection);
-
-            var incc = collection as INotifyCollectionChanged;
-            if (incc != null)
-            {
-                var lastRemoveIndex = -1;
-                var queue = new List<Action>();
-
-                incc.CollectionChanged += async (sender, e) =>
-                {
-                    var action = new Action(() =>
-                    {
-                        if (e.Action == NotifyCollectionChangedAction.Reset)
-                        {
-                            list.Clear();
-                        }
-                        else if (e.Action == NotifyCollectionChangedAction.Add)
-                        {
-                            list.Insert(e.NewStartingIndex, (T)e.NewItems[0]);
-                        }
-                        else if (e.Action == NotifyCollectionChangedAction.Remove)
-                        {
-                            list.RemoveAt(e.OldStartingIndex);
-                        }
-                        else if (e.Action == NotifyCollectionChangedAction.Replace)
-                        {
-                            list[e.NewStartingIndex] = (T)e.NewItems[0];
-                        }
-                        else if (e.Action == NotifyCollectionChangedAction.Move)
-                        {
-                            list.Move(e.OldStartingIndex, e.NewStartingIndex);
-                        }
-                    });
-                    
-                    if (!smoothFastRemoveAdd)
-                    {
-                        action();
-                        return;
-                    }
-
-                    queue.Add(action);
-
-                    if (e.Action == NotifyCollectionChangedAction.Remove)
-                    {
-                        lastRemoveIndex = e.OldStartingIndex;
-
-                        await Task.Delay(200);
-                    }
-                    else if (e.Action == NotifyCollectionChangedAction.Add && e.NewStartingIndex == lastRemoveIndex && lastRemoveIndex >= 0)
-                    {
-                        var capturedIndex = lastRemoveIndex;
-                        queue.RemoveAt(queue.Count - 1);
-                        queue[queue.Count - 1] = () => list[capturedIndex] = (T)e.NewItems[0];
-                        lastRemoveIndex = -1;
-
-                        await Task.Delay(800);
-                    }
-
-                    lastRemoveIndex = -1;
-
-                    foreach (var item in queue)
-                    {
-                        item();
-                    }
-                    queue.Clear();
-                };
-            }
-            return list;
-        }
-
-        private static readonly SynchronizationContext syncContext = SynchronizationContext.Current;
-
-        public static void BindDataContext<T>(this FrameworkElement element, Action<T> update) where T : class
-        {
-            var safeAction = new Action(() =>
-            {
-                try
-                {
-                    var data = element.DataContext as T;
-                    if (data != null)
-                    {
-                        update(data);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine("Binding Error:");
-                    Debug.WriteLine(ex);
-                }
-            });
-
-            var propertyChangedHandler = new PropertyChangedEventHandler((sender, e) =>
-            {
-                if (syncContext != null)
-                {
-                    syncContext.Post(x => ((Action)x)(), safeAction);
-                }
-                else
-                {
-                    safeAction();
-                }
-            });
-
-            element.DataContextChanged += (a, b) =>
-            {
-                var data = element.DataContext as T;
-                if (data != null)
-                {
-                    update(data);
-
-                    var notifyPropertyChanged = data as INotifyPropertyChanged;
-                    if (notifyPropertyChanged != null)
-                    {
-                        notifyPropertyChanged.PropertyChanged -= propertyChangedHandler;
-                        notifyPropertyChanged.PropertyChanged += propertyChangedHandler;
-                    }
-                }
-            };
         }
 #endif
     }

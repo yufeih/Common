@@ -43,22 +43,6 @@ namespace UIKit
         {
             return string.IsNullOrEmpty(value) ? ViewStates.Visible : ViewStates.Gone;
         }
-
-        public static void SetSource(this ImageView image, string value, bool small = false)
-        {
-            var existingValue = image.GetDataContext<string>();
-            if (existingValue == value)
-            {
-                return;
-            }
-
-            image.SetDataContext(value);
-
-            image.SetImageBitmap(null);
-            var bitmapManager = small ? BitmapManager.Small : BitmapManager.Large;
-            bitmapManager.Release(existingValue);
-            image.SetImageBitmap(bitmapManager.Get(value));
-        }
 #elif WINDOWS_UWP
         public static Visibility ToVisible(this bool value) => value ? Visibility.Visible : Visibility.Collapsed;
 

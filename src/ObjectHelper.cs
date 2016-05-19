@@ -282,7 +282,7 @@ namespace System
 
         internal interface IPropertyAccessor
         {
-            MemberInfo Member { get; }
+            PropertyInfo Member { get; }
             object GetValue(object source);
             void SetValue(object source, object value);
             void Copy(object source, object target);
@@ -295,7 +295,7 @@ namespace System
             private readonly Action<T, TValue> _setter;
             private readonly PropertyInfo _pi;
 
-            public MemberInfo Member => _pi;
+            public PropertyInfo Member => _pi;
 
             public PropertyAccessor(PropertyInfo pi)
             {

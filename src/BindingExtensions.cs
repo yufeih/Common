@@ -1,6 +1,7 @@
 #if WINDOWS_UWP
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Media.Imaging;
@@ -64,7 +65,8 @@ namespace UIKit
             return result;
         }
 
-        private static Dictionary<uint, SolidColorBrush> _brushes = new Dictionary<uint, SolidColorBrush>();
+        private static readonly Dictionary<uint, SolidColorBrush> _brushes = new Dictionary<uint, SolidColorBrush>();
+        private static readonly ConditionalWeakTable<string, BitmapImage> _bitmaps = new ConditionalWeakTable<string, BitmapImage>();
 
         public static void SetSource(this Image image, string value)
         {
@@ -74,12 +76,12 @@ namespace UIKit
                 return;
             }
 
+            var bitmap = image.Source as BitmapImage;
+            if (bitmap?.UriSource.LocalPath == value) return;
+
             try
             {
-                var uri = new Uri(value);
-                var bitmap = image.Source as BitmapImage;
-                if (bitmap != null && bitmap.UriSource == uri) return;
-                image.Source = new BitmapImage(new Uri(value));
+                image.Source = _bitmaps.GetValue(value, key => new BitmapImage(new Uri(key)));
             }
             catch
             {

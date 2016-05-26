@@ -44,11 +44,15 @@
             }
         }
 
-        public static HttpResponseMessage EnsureSuccess(this HttpResponseMessage message)
+        public static HttpResponseMessage EnsureSuccess(this HttpResponseMessage message, string additionalInfo = null)
         {
             if (message.IsSuccessStatusCode) return message;
 
-            throw new HttpRequestException($"Http {message.StatusCode}: {message.Content.ReadAsStringAsync().Result}");
+            var errorMessage = $"Http {message.StatusCode}: {message.Content.ReadAsStringAsync().Result}";
+
+            if (!string.IsNullOrEmpty(additionalInfo)) errorMessage += "\n" + additionalInfo;
+
+            throw new HttpRequestException();
         }
 
         public static int TryGetContentLength(HttpResponseMessage response)

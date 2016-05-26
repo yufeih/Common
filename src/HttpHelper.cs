@@ -52,7 +52,7 @@
 
             if (!string.IsNullOrEmpty(additionalInfo)) errorMessage += "\n" + additionalInfo;
 
-            throw new HttpRequestException();
+            throw new HttpRequestException(errorMessage);
         }
 
         public static int TryGetContentLength(HttpResponseMessage response)

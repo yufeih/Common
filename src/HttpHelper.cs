@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Threading.Tasks;
 
     static class HttpHelper
     {
@@ -41,6 +42,13 @@
                 });
                 dump();
             }
+        }
+
+        public static HttpResponseMessage EnsureSuccess(this HttpResponseMessage message)
+        {
+            if (message.IsSuccessStatusCode) return message;
+
+            throw new HttpRequestException($"Http {message.StatusCode}: {message.Content.ReadAsStringAsync().Result}");
         }
 
         public static int TryGetContentLength(HttpResponseMessage response)

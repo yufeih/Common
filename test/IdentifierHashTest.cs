@@ -14,7 +14,8 @@
                 from asm in Assembly.GetExecutingAssembly().LoadReferencedAssemblies(recursive: true)
                 from type in asm.DefinedTypes
                 from name in GetIdentifiers(type)
-                where !name.Contains('_') && !name.Contains('@') &&
+                where name != null &&
+                      !name.Contains('_') && !name.Contains('@') &&
                       !name.Contains('`') && !name.Contains('.') &&
                       !name.Contains('<') && !name.Contains('>') &&
                       name.Length != 40 // GUID

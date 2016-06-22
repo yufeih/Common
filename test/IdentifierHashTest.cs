@@ -46,9 +46,6 @@
 
             Test("Murmur3 32bit", ids, id => Murmur3.Hash32(Encoding.ASCII.GetBytes(id), seed));
             Test("Murmur3 16bit", ids, id => To16Bit(Murmur3.Hash32(Encoding.ASCII.GetBytes(id), seed)));
-
-            Test("Identifier 32bit", ids, id => IdentifierHash.Hash(id, seed));
-            Test("Identifier 16bit", ids, id => To16Bit(IdentifierHash.Hash(id, seed)));
         }
 
         private ushort To16Bit(uint value) => (ushort)((value & 0x0000FFFF) ^ (value >> 16));

@@ -4,7 +4,7 @@ namespace System.Threading
     using System.Diagnostics;
 
     [DebuggerStepThrough]
-    class UISynchronizationContext : SynchronizationContext, IDisposable
+    class TestUISynchronizationContext : SynchronizationContext, IDisposable
     {
         struct WorkItem
         {
@@ -13,9 +13,9 @@ namespace System.Threading
             public AutoResetEvent Handle;
         }
 
-        public static UISynchronizationContext BindToCurrent()
+        public static SynchronizationContext BindToCurrent()
         {
-            var result = new UISynchronizationContext();
+            var result = new TestUISynchronizationContext();
             SetSynchronizationContext(result);
             return result;
         }
@@ -25,7 +25,7 @@ namespace System.Threading
         private readonly Thread _uiThread;
         private readonly BlockingCollection<WorkItem> _workItems = new BlockingCollection<WorkItem>();
         
-        public UISynchronizationContext()
+        public TestUISynchronizationContext()
         {
             _uiThread = new Thread(Loop) { Name = "UIThread" };
             _uiThread.Start();

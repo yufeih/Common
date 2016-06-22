@@ -1,14 +1,13 @@
-namespace System
+namespace System.Reflection
 {
     using System.Collections.Generic;
-    using System.Reflection;
     using System.Linq;
 
-    static class ObjectHelper
+    static class ObjectExtensions
     {
         private static Func<object, object> _memberwiseClone;
 
-        static ObjectHelper()
+        static ObjectExtensions()
         {
             var clone = typeof(object).GetTypeInfo().GetDeclaredMethod("MemberwiseClone");
             _memberwiseClone = (Func<object, object>)clone.CreateDelegate(typeof(Func<object, object>));

@@ -1,4 +1,4 @@
-﻿namespace System
+﻿namespace System.Reflection
 {
     using System.Diagnostics;
     using Xunit;
@@ -59,7 +59,7 @@
             var sw = Stopwatch.StartNew();
             for (var i = 0; i < 100 * 1000; i++)
             {
-                ObjectHelper.Merge(new Foo(), foo);
+                new Foo().Merge(foo);
                 foo.Id++;
             }
             Console.WriteLine(sw.ElapsedMilliseconds);
@@ -68,7 +68,7 @@
             sw = Stopwatch.StartNew();
             for (var i = 0; i < 100 * 1000; i++)
             {
-                ObjectHelper.MemberwiseClone(foo);
+                foo.MemberwiseClone();
                 foo.Id++;
             }
             Console.WriteLine(sw.ElapsedMilliseconds);

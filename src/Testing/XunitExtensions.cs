@@ -1,5 +1,6 @@
-﻿namespace System
+namespace Xunit
 {
+    using System;
     using System.Collections.Generic;
     using System.Collections.Specialized;
     using System.ComponentModel;
@@ -7,7 +8,7 @@
     using System.Linq;
     using System.Threading.Tasks;
 
-    static class TestExtensionMethods
+    static class XunitExtensions
     {
         public async static Task PropertyChangedTo<T>(this T obj, Func<T, bool> predicate, int timeout = 10000)
         {
@@ -72,6 +73,21 @@
                 collectionChanged.CollectionChanged -= handler;
                 throw new TimeoutException($"[{ collection.Count() }] : { collection }");
             }
+        }
+        
+        public static TheoryData<T> ToTheoryData<T>(this IEnumerable<T> enumerable)
+        {
+            var data = new TheoryData<T>();
+            foreach (var item in enumerable)
+            {
+                data.Add(item);
+            }
+            return data;
+        }
+
+        public static IEnumerable<T> ToEnumerable<T>(this TheoryData<T> theoryData)
+        {
+            return theoryData.Select(d => (T)d[0]);
         }
     }
 }

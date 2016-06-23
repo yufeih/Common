@@ -1,4 +1,4 @@
-﻿namespace System.Runtime.Serialization
+﻿namespace Nine.Formatting
 {
     public interface ITextConverter { }
     public interface ITextConverter<T> : ITextConverter

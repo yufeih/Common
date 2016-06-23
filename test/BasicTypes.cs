@@ -1,5 +1,8 @@
-﻿namespace System.Runtime.Serialization
+﻿namespace Nine.Formatting
 {
+    using System;
+    using System.Runtime.Serialization;
+
     [DataContract]
     public class BasicTypes
     {

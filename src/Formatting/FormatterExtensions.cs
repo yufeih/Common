@@ -1,4 +1,4 @@
-﻿namespace System.Runtime.Serialization
+﻿namespace Nine.Formatting
 {
     using System;
     using System.IO;

@@ -1,14 +1,11 @@
 ﻿namespace System
 {
     using System.Collections.Generic;
-    using System.ComponentModel;
     using System.Diagnostics;
-    using System.IO;
     using System.Linq;
     using System.Reflection;
-    using System.Threading;
-    using System.Threading.Tasks;
 
+#if !PCL
     static class ReflectionExtensions
     {
         public static IEnumerable<Type> TryGetExportedTypes(this Assembly assembly)
@@ -98,4 +95,5 @@
             return result;
         }
     }
+#endif
 }
